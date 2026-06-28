@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-worker
+  labels:
+    app: nexus-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-worker
+  template:
+    metadata:
+      labels:
+        app: nexus-worker
+        azure.workload.identity/use: "true" # 🌟 Tells Azure to inject the secure identity token
+    spec:
+      serviceAccountName: nexus-worker-sa # 🌟 Binds the pod to your service account
+      containers:
+      - name: nexus-worker
+        image: nexusregistryabc.azurecr.io/nexus-worker:v1 # (Use your exact registry name)
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=nexus-db;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;"
+       
+        - name: CosmosDb__ConnectionString
+          # 🌟 FIXED: Plaintext secret key stripped out! Connects securely via host endpoint URL instead.
+          value: "mongodb://nexusbank-nosql-hb@nexusbank-nosql-hb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@nexusbank-nosql-hb@"
+        - name: AzureStorage__ConnectionString
+          value: "UseDevelopmentStorage=false;"

@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBank.Api", "NexusBank.Api.csproj", "{86AD56DF-653D-4834-9ED7-5489DFD6F762}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose.yml = ..\docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBank.Shared", "..\NexusBank.Shared\NexusBank.Shared.csproj", "{E5DCA3AB-9675-730E-6C29-77A94A432114}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBank.Worker", "..\NexusBank.Worker\NexusBank.Worker.csproj", "{5F0F3410-2FF8-3F42-713F-251A718AB37B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{86AD56DF-653D-4834-9ED7-5489DFD6F762}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86AD56DF-653D-4834-9ED7-5489DFD6F762}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86AD56DF-653D-4834-9ED7-5489DFD6F762}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86AD56DF-653D-4834-9ED7-5489DFD6F762}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5DCA3AB-9675-730E-6C29-77A94A432114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5DCA3AB-9675-730E-6C29-77A94A432114}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5DCA3AB-9675-730E-6C29-77A94A432114}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5DCA3AB-9675-730E-6C29-77A94A432114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F0F3410-2FF8-3F42-713F-251A718AB37B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0F3410-2FF8-3F42-713F-251A718AB37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0F3410-2FF8-3F42-713F-251A718AB37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0F3410-2FF8-3F42-713F-251A718AB37B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D5A2807A-8EB7-43A9-8CFF-9D194C676B6D}
+	EndGlobalSection
+EndGlobal

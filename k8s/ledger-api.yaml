@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ledger-api-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: "9509f07e-f7f3-4ea3-ba44-4f5de58c6fb9"
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+  labels:
+    app: ledger-api
+    
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: ledger-api
+  template:
+    metadata:
+      labels:
+        app: ledger-api
+        azure.workload.identity/use: "true" # ◄ Tells AKS to inject the token
+    spec:
+      serviceAccountName: ledger-api-sa     # ◄ Binds the pod to your service account
+      containers:
+      - name: ledger-api
+        image: nexusregistryabc.azurecr.io/ledger-api:v1   # 🌟 Point to ACR                 # 🌟 UPDATED
+        imagePullPolicy: IfNotPresent                         # 🌟 ADDED
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=nexus-db;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-api
+spec:
+  type: ClusterIP 
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: ledger-api

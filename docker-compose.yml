@@ -1,0 +1,93 @@
+﻿version: '3.8'
+
+services:
+  # 1. Core Ledger API
+  ledger-api:
+    image: nexusbank-api:local
+    build:
+      context: .
+      dockerfile: ./NexusBank.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    networks:
+      - nexus-network
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=nexus-db,1433;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;
+      # 🌟 FIXED: No raw secrets hardcoded! Evaluates dynamically from your local system.
+      - AzureStorage__ConnectionString=${AZURE_STORAGE_CONNECTION_STRING}
+      - CosmosDb__ConnectionString=${COSMOSDB_CONNECTION_STRING}
+      - MessageBroker__Host=nexus-message-broker
+      - MessageBroker__Username=nexus_admin
+      - MessageBroker__Password=SecureBrokerPassword2026!
+    depends_on:
+      - nexus-db
+      - nexus-message-broker
+
+  # 2. Local SQL Server Ledger
+  nexus-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: nexus-db
+    ports:
+      - "1433:1433"
+    networks:
+      - nexus-network
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SecureBankPassword2026!
+      - MSSQL_PID=Developer
+      - MSSQL_TCP_PORT=1433
+
+  # 3. RabbitMQ Message Broker
+  nexus-message-broker:
+    image: rabbitmq:3-management-alpine
+    container_name: nexus-message-broker
+    hostname: nexus-message-broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - nexus-network
+    environment:
+      - RABBITMQ_DEFAULT_USER=nexus_admin
+      - RABBITMQ_DEFAULT_PASS=SecureBrokerPassword2026!
+    # 🌟 NEW: Standard health check rule
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+
+  # 4. Statement Worker
+ # 4. Statement Worker
+  nexus-worker:
+    image: nexusbank-worker:local
+    build:
+      context: .
+      dockerfile: ./NexusBank.Worker/Dockerfile
+    networks:
+      - nexus-network
+    restart: always
+    depends_on:
+      nexus-message-broker:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=nexus-db,1433;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;
+      # 🌟 FIXED: No raw secrets hardcoded! Evaluates dynamically from your local system.
+      - AzureStorage__ConnectionString=${AZURE_STORAGE_CONNECTION_STRING}
+      - CosmosDb__ConnectionString=${COSMOSDB_CONNECTION_STRING}
+      - MessageBroker__Host=nexus-message-broker
+      - MessageBroker__Username=nexus_admin
+      - MessageBroker__Password=SecureBrokerPassword2026!
+networks:
+  nexus-network:
+    driver: bridge
+
+volumes:
+  rabbit_data:

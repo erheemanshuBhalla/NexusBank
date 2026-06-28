@@ -1,0 +1,14 @@
+# Visual Studio temporary cache and tracking files
+.vs/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+bin/
+obj/
+
+.env

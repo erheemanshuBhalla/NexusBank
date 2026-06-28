@@ -1,0 +1,9 @@
+subs - 
+669b5baa-9789-4c5b-8363-b0a2641b115c
+
+princinpal 
+b602124f-d7a5-4377-b20a-ebf0fa5dee41
+
+https://westus2.oic.prod-aks.azure.com/4ec3cbc2-59e9-4f1a-8bf8-f15c264ad747/718122b0-4f83-403d-9c70-c0e887fbcf2c/
+
+az cosmosdb keys list --name nexusbank-nosql-hb --resource-group nexusbank-rg --type connection-strings --query "connectionStrings[0].connectionString" -o tsv
