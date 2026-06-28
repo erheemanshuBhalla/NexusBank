@@ -1,0 +1,39 @@
+name: NexusBank Core Deployment
+
+on:
+  push:
+    branches: [ main ] # Triggers whenever you push cleanly to main
+
+# Required by Azure OIDC to request secure login tokens dynamically
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' # Aligns with your 2026 stack
+
+      - name: Build Services Locally
+        run: |
+          dotnet build NexusBank.Api/NexusBank.Api.csproj --configuration Release
+          dotnet build NexusBank.Worker/NexusBank.Worker.csproj --configuration Release
+
+      # 🌟 The OIDC Secure Azure Authentication Login Gate
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Azure Connectivity
+        run: |
+          az account show
