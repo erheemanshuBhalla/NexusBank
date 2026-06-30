@@ -63,11 +63,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Directly run the Bicep template deployment using your capitalized 'Infra' folder path
+      # Directly run the Bicep template deployment with the lowercase scope value
       - name: Deploy Infrastructure (Azure Bicep)
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: rg-nexusbank-dev
-          scope: resourceGroup
-          template: ./Infra/main.bicep   # <--- Fixed case from 'infra' to 'Infra'!
+          scope: resourcegroup          # <--- Changed 'resourceGroup' to lowercase 'resourcegroup'
+          template: ./Infra/main.bicep
           failOnTargetValidationError: true
