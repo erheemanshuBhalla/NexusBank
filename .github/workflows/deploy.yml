@@ -64,11 +64,13 @@ jobs:
 
       # Directly run the Bicep template deployment using your capitalized 'Infra' folder path
       # Directly run the Bicep template deployment with the lowercase scope value
+      # Directly run the Bicep template deployment and pass the required environment parameter
       - name: Deploy Infrastructure (Azure Bicep)
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: rg-nexusbank-dev
-          scope: resourcegroup          # <--- Changed 'resourceGroup' to lowercase 'resourcegroup'
+          scope: resourcegroup
           template: ./Infra/main.bicep
+          parameters: environment=dev         # <--- Added this line to satisfy your Bicep file
           failOnTargetValidationError: true
