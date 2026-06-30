@@ -24,18 +24,21 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Build Services Locally
-        run: |
+       run: |
           dotnet build NexusBank.Api/NexusBank.Api.csproj --configuration Release -p:NoWarn=CS8618
+          dotnet build NexusBank.Worker/NexusBank.Worker.csproj --configuration Release -p:NoWarn=CS8618
           
       - name: Publish API Artifacts
         run: |
-          dotnet publish NexusBank.Api/NexusBank.Api.csproj --configuration Release --output ./publish
+          # Publish each to its own unique subfolder inside the staging directory!
+          dotnet publish NexusBank.Api/NexusBank.Api.csproj --configuration Release --output ./publish/api
+          dotnet publish NexusBank.Worker/NexusBank.Worker.csproj --configuration Release --output ./publish/worker
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nexusbank-api
-          path: ./publish
+          name: nexusbank-app-package
+          path: ./publish/             # Uploads the root folder containing both /api and /worker folders
 
   # STAGE 2: Deploy Infrastructure and Code to Azure
   deploy:
