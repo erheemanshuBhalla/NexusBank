@@ -64,10 +64,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # 1. New Step: Ensures the resource group exists before Bicep runs
+      # Updated to explicitly set the subscription context before executing the create command
       - name: Create Resource Group if Missing
         uses: azure/cli@v2
         with:
           inlineScript: |
+            az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
             az group create --name rg-nexusbank-dev --location eastus
 
       # 2. Updated Step: Set scope back to resource group deployment
