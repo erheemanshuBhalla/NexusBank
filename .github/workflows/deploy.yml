@@ -71,5 +71,5 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           scope: subscription
           region: eastus # <--- Set this to your preferred Azure region (e.g., eastus, westeurope)
-          template: ./infra/main.bicep
+          template: ./Infra/main.bicep
           failOnTargetValidationError: true
