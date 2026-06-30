@@ -64,10 +64,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # New Step: Validates and deploys your Bicep infrastructure templates
+      # Updated to deploy at the subscription level so it can create the resource group if it's missing
       - name: Deploy Infrastructure (Azure Bicep)
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          resourceGroupName: rg-nexusbank-dev
-          template: ./infra/main.bicep   # Make sure this points to where your Bicep file lives!
+          scope: subscription
+          region: eastus # <--- Set this to your preferred Azure region (e.g., eastus, westeurope)
+          template: ./infra/main.bicep
           failOnTargetValidationError: true
