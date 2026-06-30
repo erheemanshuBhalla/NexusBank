@@ -30,7 +30,6 @@ jobs:
           
       - name: Publish API Artifacts
         run: |
-          # The -p flag disables the strict validation error caused by shared project dependencies!
           dotnet publish NexusBank.Api/NexusBank.Api.csproj --configuration Release --output ./publish/api -p:ErrorOnDuplicatePublishOutputFiles=false
           dotnet publish NexusBank.Worker/NexusBank.Worker.csproj --configuration Release --output ./publish/worker -p:ErrorOnDuplicatePublishOutputFiles=false
 
@@ -38,12 +37,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexusbank-app-package
-          path: ./publish/             # Uploads the root folder containing both /api and /worker folders
+          path: ./publish/
 
   # STAGE 2: Deploy Infrastructure and Code to Azure
   deploy:
     name: 🚀 Deploy to Azure (Dev)
-    needs: build # Ensures deployment ONLY happens if the build succeeds!
+    needs: build
     runs-on: ubuntu-latest
     
     steps:
@@ -53,7 +52,7 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: nexusbank-app-package  # Fixed this to match the name uploaded in Stage 1!
+          name: nexusbank-app-package
           path: ./publish
 
       - name: Azure Login via OIDC
@@ -63,18 +62,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # REPLACED: Uses native shell commands instead of the flaky docker action
-      - name: Create Resource Group if Missing
-        run: |
-          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          az group create --name rg-nexusbank-dev --location eastus
-
+      # Directly run the Bicep template deployment using your capitalized 'Infra' folder path
       - name: Deploy Infrastructure (Azure Bicep)
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: rg-nexusbank-dev
           scope: resourceGroup
-          template: ./infra/main.bicep
+          template: ./Infra/main.bicep   # <--- Fixed case from 'infra' to 'Infra'!
           failOnTargetValidationError: true
-      
