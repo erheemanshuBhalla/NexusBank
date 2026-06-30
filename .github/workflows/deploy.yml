@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Build Services Locally
-       run: |
+        run: |
           dotnet build NexusBank.Api/NexusBank.Api.csproj --configuration Release -p:NoWarn=CS8618
           dotnet build NexusBank.Worker/NexusBank.Worker.csproj --configuration Release -p:NoWarn=CS8618
           
@@ -53,7 +53,7 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: nexusbank-api
+          name: nexusbank-app-package  # Fixed this to match the name uploaded in Stage 1!
           path: ./publish
 
       - name: Azure Login via OIDC
