@@ -12,7 +12,7 @@ param location string = resourceGroup().location
 
 // Centralized naming conventions utilizing our environment parameter
 var identityName = 'id-nexus-ledger-${environment}-01'
-var keyVaultName = 'kv-nexus-bank-${environment}-01'
+param keyVaultName string = 'kv-nexusbank-dev-xyz99' // Put your own custom letters/numbers here
 
 // 1. Orchestrate the Identity Module
 module appIdentity 'modules/identity.bicep' = {
