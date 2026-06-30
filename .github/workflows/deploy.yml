@@ -30,9 +30,9 @@ jobs:
           
       - name: Publish API Artifacts
         run: |
-          # Publish each to its own unique subfolder inside the staging directory!
-          dotnet publish NexusBank.Api/NexusBank.Api.csproj --configuration Release --output ./publish/api
-          dotnet publish NexusBank.Worker/NexusBank.Worker.csproj --configuration Release --output ./publish/worker
+          # The -p flag disables the strict validation error caused by shared project dependencies!
+          dotnet publish NexusBank.Api/NexusBank.Api.csproj --configuration Release --output ./publish/api -p:ErrorOnDuplicatePublishOutputFiles=false
+          dotnet publish NexusBank.Worker/NexusBank.Worker.csproj --configuration Release --output ./publish/worker -p:ErrorOnDuplicatePublishOutputFiles=false
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
