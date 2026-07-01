@@ -77,7 +77,7 @@ jobs:
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:latest
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
 
-        - name: Set AKS Context
+      - name: Set AKS Context
         run: |
           az aks get-credentials --resource-group rg-nexusbank-dev --name aks-nexus-dev-01 --overwrite-existing
 
