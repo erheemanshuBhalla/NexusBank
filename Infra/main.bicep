@@ -68,11 +68,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   }
   properties: {
     dnsPrefix: 'nexusbank-${environment}'
-    agentPoolProfiles: [
+   agentPoolProfiles: [
       {
         name: 'agentpool'
         count: 1
-        vmSize: 'Standard_B2s' // Low-cost burstable VM, great for dev testing
+        vmSize: 'Standard_D2s_v7' // ◄ CHANGED: Replaced B2s with an allowed, cost-effective dev size
         osType: 'Linux'
         mode: 'System'
       }
