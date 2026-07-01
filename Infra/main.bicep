@@ -34,3 +34,21 @@ module appKeyVault 'modules/keyvault.bicep' = {
 }
 
 output deployedKeyVaultUri string = appKeyVault.outputs.kvUri
+
+// Define a unique name for the Container Registry
+param acrName string = 'acrnexus${uniqueString(resourceGroup().id)}'
+
+// Create the Azure Container Registry (Basic tier is perfect for dev environments)
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: acrName
+  location: resourceGroup().location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: true // Allows your pipeline to easily authenticate
+  }
+}
+
+// Output the ACR Login Server url so your GitHub pipeline can see where to push images
+output acrLoginServer string = acr.properties.loginServer
