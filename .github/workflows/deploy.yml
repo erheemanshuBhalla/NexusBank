@@ -83,5 +83,5 @@ jobs:
 
       - name: Deploy Manifests to AKS
         run: |
-          kubectl apply -f ./K8s/ledger-api.yml
-          kubectl apply -f ./K8s/nexus-worker.yml
+          kubectl apply -f ./k8s/ledger-api.yml
+          kubectl apply -f ./k8s/nexus-worker.yml
