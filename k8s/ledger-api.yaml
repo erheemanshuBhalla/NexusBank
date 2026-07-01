@@ -27,7 +27,9 @@ spec:
       serviceAccountName: ledger-api-sa     # ◄ Binds the pod to your service account
       containers:
       - name: ledger-api
-        image: nexusregistryabc.azurecr.io/ledger-api:v1   # 🌟 Point to ACR                 # 🌟 UPDATED
+        #image: nexusregistryabc.azurecr.io/ledger-api:v1   # 🌟 Point to ACR                 # 🌟 UPDATED
+        image: acrnexus5ienu2hgc6pxq.azurecr.io/nexusbank-api:latest
+        
         imagePullPolicy: IfNotPresent                         # 🌟 ADDED
         ports:
         - containerPort: 8080

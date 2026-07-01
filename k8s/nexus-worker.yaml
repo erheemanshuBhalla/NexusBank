@@ -18,7 +18,8 @@ spec:
       serviceAccountName: nexus-worker-sa # 🌟 Binds the pod to your service account
       containers:
       - name: nexus-worker
-        image: nexusregistryabc.azurecr.io/nexus-worker:v1 # (Use your exact registry name)
+        #image: nexusregistryabc.azurecr.io/nexus-worker:v1 # (Use your exact registry name)
+        image: acrnexus5ienu2hgc6pxq.azurecr.io/nexusbank-worker:latest # ◄ UPDATED
         env:
         - name: ConnectionStrings__DefaultConnection
           value: "Server=nexus-db;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;"

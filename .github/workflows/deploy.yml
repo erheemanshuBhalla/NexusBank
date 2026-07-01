@@ -76,3 +76,12 @@ jobs:
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:latest
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
+
+        - name: Set AKS Context
+        run: |
+          az aks get-credentials --resource-group rg-nexusbank-dev --name aks-nexus-dev-01 --overwrite-existing
+
+      - name: Deploy Manifests to AKS
+        run: |
+          kubectl apply -f ./K8s/ledger-api.yml
+          kubectl apply -f ./K8s/nexus-worker.yml
