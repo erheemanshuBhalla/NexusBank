@@ -52,3 +52,41 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
 
 // Output the ACR Login Server url so your GitHub pipeline can see where to push images
 output acrLoginServer string = acr.properties.loginServer
+
+param aksClusterName string = 'aks-nexus-${environment}-01'
+
+// Create a cost-optimized, single-node AKS cluster for development
+resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
+  name: aksClusterName
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  sku: {
+    name: 'Base'
+    tier: 'Free'
+  }
+  properties: {
+    dnsPrefix: 'nexusbank-${environment}'
+    agentPoolProfiles: [
+      {
+        name: 'agentpool'
+        count: 1
+        vmSize: 'Standard_B2s' // Low-cost burstable VM, great for dev testing
+        osType: 'Linux'
+        mode: 'System'
+      }
+    ]
+  }
+}
+
+// Grant the AKS cluster permission to pull images from your ACR vault
+resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, aksCluster.id, 'AcrPull')
+  scope: acr
+  properties: {
+    principalId: aksCluster.properties.identityProfile.kubeletidentity.objectId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull Role ID
+    principalType: 'ServicePrincipal'
+  }
+}
