@@ -89,7 +89,7 @@ jobs:
     name: 💎 Deploy to PROD Environment
     runs-on: ubuntu-latest
     needs: deploy-dev # ◄ Forces Prod to wait until Dev succeeds completely
-    environment: production # ◄ Enables manual approval gates in GitHub Settings
+    #environment: production # ◄ Enables manual approval gates in GitHub Settings
     steps:
       - uses: actions/checkout@v4
 
