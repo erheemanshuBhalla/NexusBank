@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build:
+    name: 🏗️ Build & Verify Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +26,8 @@ jobs:
       - name: Build Code
         run: dotnet build --no-restore -c Release
 
-  deploy:
+  deploy-dev:
+    name: 🚀 Deploy to DEV Environment
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -48,15 +50,12 @@ jobs:
           template: ./Infra/main.bicep
           parameters: environment=dev
           failOnTargetValidationError: true
-          failOnStdErr: false # ◄ ADD THIS LINE HERE
+          failOnStdErr: false
 
-      # NEW STEP: Log directly into your newly spawned Azure Container Registry
       - name: Log in to Azure Container Registry
         run: |
-          echo "Logging into ACR: ${{ steps.bicep-deploy.outputs.acrLoginServer }}"
           az acr login --name ${{ steps.bicep-deploy.outputs.acrLoginServer }}
 
-      # NEW STEP: Build and Push NexusBank.Api
       - name: Build and Push Api Image
         uses: docker/build-push-action@v5
         with:
@@ -67,7 +66,6 @@ jobs:
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:latest
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
 
-      # NEW STEP: Build and Push NexusBank.Worker
       - name: Build and Push Worker Image
         uses: docker/build-push-action@v5
         with:
@@ -81,6 +79,66 @@ jobs:
       - name: Set AKS Context
         run: |
           az aks get-credentials --resource-group rg-nexusbank-dev --name aks-nexus-dev-01 --overwrite-existing
+
+      - name: Deploy Manifests to AKS
+        run: |
+          kubectl apply -f ./k8s/ledger-api.yaml
+          kubectl apply -f ./k8s/nexus-worker.yaml
+
+  deploy-prod:
+    name: 💎 Deploy to PROD Environment
+    runs-on: ubuntu-latest
+    needs: deploy-dev # ◄ Forces Prod to wait until Dev succeeds completely
+    environment: production # ◄ Enables manual approval gates in GitHub Settings
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Az CLI Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infrastructure (Azure Bicep)
+        id: bicep-deploy
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: rg-nexusbank-prod # ◄ Target Prod Resource Group
+          scope: resourcegroup
+          template: ./Infra/main.bicep
+          parameters: environment=prod sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }} # ◄ Pass secure overrides
+          failOnTargetValidationError: true
+          failOnStdErr: false
+
+      - name: Log in to Azure Container Registry
+        run: |
+          az acr login --name ${{ steps.bicep-deploy.outputs.acrLoginServer }}
+
+      - name: Build and Push Api Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./NexusBank.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:prod-latest
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
+
+      - name: Build and Push Worker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./NexusBank.Worker/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:prod-latest
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
+
+      - name: Set AKS Context
+        run: |
+          az aks get-credentials --resource-group rg-nexusbank-prod --name aks-nexus-prod-01 --overwrite-existing
 
       - name: Deploy Manifests to AKS
         run: |

@@ -10,3 +10,6 @@ az cosmosdb keys list --name nexusbank-nosql-hb --resource-group nexusbank-rg --
 
 
 Server=tcp:sql-nexusbank-dev-5ienu2hgc6pxq-v6.database.windows.net,1433;Initial Catalog=NexusLedgerDb;Persist Security Info=False;User ID=sqladmin;Password=ComplexPassword123!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+
+
+@Dev2Prod2026
