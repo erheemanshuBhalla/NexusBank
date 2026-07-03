@@ -48,8 +48,10 @@ jobs:
           resourceGroupName: rg-nexusbank-dev
           scope: resourcegroup
           template: ./Infra/main.bicep
-          parameters: environment=dev
-          failOnTargetValidationError: true
+          parameters: >
+            environment=dev
+            sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }}
+          failOnStdErr: false
           
 
       - name: Log in to Azure Container Registry
@@ -105,10 +107,12 @@ jobs:
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          resourceGroupName: rg-nexusbank-dev
+          resourceGroupName: rg-nexusbank-prod
           scope: resourcegroup
           template: ./Infra/main.bicep
-          parameters: environment=dev sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }} # ◄ ADD PASSWORD HERE
+          parameters: >
+            environment=prod
+            sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }}
           failOnStdErr: false
           
 
