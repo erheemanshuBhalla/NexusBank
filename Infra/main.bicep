@@ -86,11 +86,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
 }
 
 // Grant the AKS cluster permission to pull images from your ACR vault
-resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, aksCluster.id, 'AcrPull')
-  scope: acr
+resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (environment == 'dev') {
+  name: guid(resourceGroup().id, 'AcrPullAssignment')
+  scope: acr // Ensure this points to your ACR resource variable/name
   properties: {
-    principalId: aksCluster.properties.identityProfile.kubeletidentity.objectId
+    principalId: aks.properties.identityProfile.kubeletidentity.objectId // or your AKS managed identity principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull Role ID
     principalType: 'ServicePrincipal'
   }
