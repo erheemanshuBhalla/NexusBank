@@ -99,9 +99,9 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
   name: sqlServerName
   location: 'westus'
   properties: {
-    administratorLogin: 'sqladmin' // ◄ Simple development username
-    administratorLoginPassword: 'ComplexPassword123!' // ◄ Temporary dev password
-    administrators: null // ◄ FORCE AZURE TO BLANK OUT THE OLD AD CONFIG SEGMENT
+    administratorLogin: 'sqladmin'
+    administratorLoginPassword: sqlAdminPassword // ◄ FIXED: Passing the secure param instead
+    administrators: null
     minimalTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
   }

@@ -7,3 +7,6 @@ b602124f-d7a5-4377-b20a-ebf0fa5dee41
 https://westus2.oic.prod-aks.azure.com/4ec3cbc2-59e9-4f1a-8bf8-f15c264ad747/718122b0-4f83-403d-9c70-c0e887fbcf2c/
 
 az cosmosdb keys list --name nexusbank-nosql-hb --resource-group nexusbank-rg --type connection-strings --query "connectionStrings[0].connectionString" -o tsv
+
+
+Server=tcp:sql-nexusbank-dev-5ienu2hgc6pxq-v6.database.windows.net,1433;Initial Catalog=NexusLedgerDb;Persist Security Info=False;User ID=sqladmin;Password=ComplexPassword123!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;

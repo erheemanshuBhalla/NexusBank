@@ -36,6 +36,7 @@ spec:
         env:
         - name: ConnectionStrings__DefaultConnection
           value: "Server=nexus-db;Database=NexusLedgerDb;User Id=sa;Password=SecureBankPassword2026!;TrustServerCertificate=True;"
+          
 ---
 apiVersion: v1
 kind: Service
