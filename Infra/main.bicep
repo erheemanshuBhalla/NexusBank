@@ -10,6 +10,11 @@ param environment string
 @description('The primary location for all deployed resources.')
 param location string = resourceGroup().location
 
+// ◄ ADD THIS PARAMETER HERE:
+@secure()
+@description('The administrator password for the SQL Server.')
+param sqlAdminPassword string = 'ComplexPassword123!'
+
 // Centralized naming conventions utilizing our environment parameter
 var identityName = 'id-nexus-ledger-${environment}-01'
 param keyVaultName string = 'kv-nexusbank-dev-xyz99' // Put your own custom letters/numbers here
