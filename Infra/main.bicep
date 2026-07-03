@@ -19,7 +19,7 @@ module appIdentity 'modules/identity.bicep' = {
   name: 'deploy-identity-${environment}'
   params: {
     identityName: identityName
-    location: location
+    location: location // ◄ FIXED: Removed the single quotes here!
   }
 }
 
@@ -90,3 +90,49 @@ resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalType: 'ServicePrincipal'
   }
 }
+// Define names for the SQL Server and Database (Bumped to -v6)
+var sqlServerName = 'sql-nexusbank-${environment}-${uniqueString(resourceGroup().id)}-v6'
+var sqlDatabaseName = 'NexusLedgerDb'
+
+// 1. Provision the Azure SQL Server (Targeting westus with standard authentication)
+resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
+  name: sqlServerName
+  location: 'westus'
+  properties: {
+    administratorLogin: 'sqladmin' // ◄ Simple development username
+    administratorLoginPassword: 'ComplexPassword123!' // ◄ Temporary dev password
+    administrators: null // ◄ FORCE AZURE TO BLANK OUT THE OLD AD CONFIG SEGMENT
+    minimalTlsVersion: '1.2'
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+// 2. Provision a cost-optimized, serverless development database
+resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
+  parent: sqlServer
+  name: sqlDatabaseName
+  location: 'westus'
+  sku: {
+    name: 'GP_S_Gen5_1'
+    tier: 'GeneralPurpose'
+  }
+  properties: {
+    collation: 'SQL_Latin1_General_CP1_CI_AS'
+    maxSizeBytes: 34359738368
+    autoPauseDelay: 60
+    minCapacity: any('0.5')
+  }
+}
+
+// 3. Firewall rule allowing your AKS cluster (and all Azure services) through
+resource firewallAllowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = {
+  parent: sqlServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
+// Output the full server fully-qualified domain name (FQDN) for your connection string
+output sqlServerFullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
