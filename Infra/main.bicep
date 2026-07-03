@@ -13,7 +13,7 @@ param location string = resourceGroup().location
 // ◄ ADD THIS PARAMETER HERE:
 @secure()
 @description('The administrator password for the SQL Server.')
-param sqlAdminPassword string = 'ComplexPassword123!'
+param sqlAdminPassword string // ◄ REMOVE THE = 'ComplexPassword123!' DEFAULT VALUE HERE
 
 // Centralized naming conventions utilizing our environment parameter
 var identityName = 'id-nexus-ledger-${environment}-01'
