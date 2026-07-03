@@ -50,7 +50,7 @@ jobs:
           template: ./Infra/main.bicep
           parameters: environment=dev
           failOnTargetValidationError: true
-          failOnStdErr: false
+          
 
       - name: Log in to Azure Container Registry
         run: |
@@ -110,7 +110,7 @@ jobs:
           template: ./Infra/main.bicep
           parameters: environment=prod sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }} # ◄ Pass secure overrides
           failOnTargetValidationError: true
-          failOnStdErr: false
+          
 
       - name: Log in to Azure Container Registry
         run: |
