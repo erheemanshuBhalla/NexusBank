@@ -57,6 +57,14 @@ jobs:
             environment=dev
             sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }}
           failOnStdErr: false
+        # ◄ UPDATE YOUR DEPLOYMENT TO INJECT THE CONNECTION STRING
+      - name: Deploy Manifests to AKS
+        run: |
+          az aks get-credentials --resource-group rg-nexusbank-dev --name aks-nexus-dev-xyz99 # (Use your dynamic or specific AKS name here)
+          
+          # We update the environment variable of our pods dynamically using the output from Bicep
+          kubectl set env deployment/nexusbank-api APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
+          kubectl set env deployment/nexusbank-worker APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
 
       - name: Log in to Azure Container Registry
         run: |

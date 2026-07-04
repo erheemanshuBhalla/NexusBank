@@ -11,6 +11,14 @@ using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ==========================================
+// TELEMETRY & DISTRIBUTED TRACING (WEEK 8)
+// ==========================================
+// This reads the APPLICATIONINSIGHTS_CONNECTION_STRING env variable we injected via AKS
+builder.Services.AddApplicationInsightsTelemetry();
+
+// Add the rest of your controller or repository configurations below...
+
 // 1. Try standard config reader. If null, explicitly pull the raw Docker environment variable.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
