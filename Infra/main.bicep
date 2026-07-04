@@ -127,3 +127,42 @@ resource firewallAllowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-05
 output deployedKeyVaultUri string = appKeyVault.outputs.kvUri
 output acrLoginServer string = acr.properties.loginServer
 output sqlServerFullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
+
+
+// ==========================================
+// OBSERVABILITY & LOGGING WORKSPACES (WEEK 8)
+// ==========================================
+
+@description('The name of the Log Analytics Workspace')
+var logAnalyticsName = 'log-nexus-${environment}-${uniqueString(resourceGroup().id)}'
+
+@description('The name of the Application Insights instance')
+var appInsightsName = 'appins-nexus-${environment}-${uniqueString(resourceGroup().id)}'
+
+// 1. The Raw Storage Vault for Logs
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+  name: logAnalyticsName
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018' // Standard pay-as-you-go telemetry pricing tier
+    }
+    retentionInDays: 30 // Keep logs for 30 days to avoid extra storage bills
+  }
+}
+
+// 2. The Intelligent Telemetry Engine
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: appInsightsName
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalytics.id // Links App Insights directly to our storage workspace above
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
+// Output the Instrumentation Key and Connection String so our .NET applications can reference it later
+output appInsightsConnectionString string = appInsights.properties.ConnectionString
