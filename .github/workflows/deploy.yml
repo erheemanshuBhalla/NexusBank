@@ -131,7 +131,6 @@ jobs:
       - name: Log in to Azure Container Registry
         run: |
           az acr login --name ${{ steps.bicep-deploy.outputs.acrLoginServer }}
-
       - name: Build and Push Api Image
         uses: docker/build-push-action@v5
         with:
@@ -140,7 +139,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:prod-latest
-            ${{ secrets.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }} # ◄ FIXED: changed 'secrets' to 'steps'
 
       - name: Build and Push Worker Image
         uses: docker/build-push-action@v5
@@ -150,7 +149,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:prod-latest
-            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }} # ◄ FIXED: changed 'secrets' to 'steps'
 
       - name: Deploy Manifests to AKS (PROD)
         run: |
