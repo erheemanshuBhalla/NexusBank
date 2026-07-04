@@ -40,7 +40,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # ◄ ADD THIS AUTOMATED STEP HERE TO MAKE DEV SELF-HEALING
       - name: Ensure Development Resource Group Exists
         run: |
           az group create --name rg-nexusbank-dev --location westus --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -57,15 +56,6 @@ jobs:
             environment=dev
             sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }}
           failOnStdErr: false
-        # ◄ UPDATE YOUR DEPLOYMENT TO INJECT THE CONNECTION STRING
-      - name: Deploy Manifests to AKS
-        run: |
-          # ◄ FIXED: Dynamically fetching the cluster name from Bicep outputs
-          az aks get-credentials --resource-group rg-nexusbank-dev --name ${{ steps.bicep-deploy.outputs.aksClusterName }}
-          
-          # Inject the telemetry connection string into our pods
-          kubectl set env deployment/nexusbank-api APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
-          kubectl set env deployment/nexusbank-worker APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
 
       - name: Log in to Azure Container Registry
         run: |
@@ -91,13 +81,20 @@ jobs:
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:latest
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
 
-      - name: Set AKS Context
+      - name: Deploy Manifests to AKS (DEV)
         run: |
-          az aks get-credentials --resource-group rg-nexusbank-dev --name aks-nexus-dev-01 --overwrite-existing
-
-      - name: Deploy Manifests to AKS
-        run: |
+          # 1. Context Switch using the Dynamic Cluster Output
+          az aks get-credentials --resource-group rg-nexusbank-dev --name ${{ steps.bicep-deploy.outputs.aksClusterName }} --overwrite-existing
+          
+          # 2. Extract Token
+          export APPINS_CONN_STR="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}"
+          
+          # 3. Handle tracking injection cleanly (forcing case alignment with your filename)
+          sed -i "s|CONNECTION_STRING_PLACEHOLDER|$APPINS_CONN_STR|g" ./k8s/ledger-api.yaml
+          
+          # 4. Roll out manifests
           kubectl apply -f ./k8s/ledger-api.yaml
+          # Note: Add the placeholder matching to your worker yaml as well if it reads AppInsights!
           kubectl apply -f ./k8s/nexus-worker.yaml
 
   deploy-prod:
@@ -131,15 +128,6 @@ jobs:
             sqlAdminPassword=${{ secrets.PROD_SQL_PASSWORD }}
           failOnStdErr: false
 
-      - name: Deploy Manifests to AKS
-        run: |
-          # ◄ FIXED: Dynamically fetching the cluster name from Bicep outputs
-          az aks get-credentials --resource-group rg-nexusbank-dev --name ${{ steps.bicep-deploy.outputs.aksClusterName }}
-          
-          # Inject the telemetry connection string into our pods
-          kubectl set env deployment/nexusbank-api APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
-          kubectl set env deployment/nexusbank-worker APPLICATIONINSIGHTS_CONNECTION_STRING="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}" --overwrite
-          
       - name: Log in to Azure Container Registry
         run: |
           az acr login --name ${{ steps.bicep-deploy.outputs.acrLoginServer }}
@@ -152,7 +140,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:prod-latest
-            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
+            ${{ secrets.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
 
       - name: Build and Push Worker Image
         uses: docker/build-push-action@v5
@@ -164,11 +152,17 @@ jobs:
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:prod-latest
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
 
-      - name: Set AKS Context
+      - name: Deploy Manifests to AKS (PROD)
         run: |
-          az aks get-credentials --resource-group rg-nexusbank-prod --name aks-nexus-prod-01 --overwrite-existing
-
-      - name: Deploy Manifests to AKS
-        run: |
+          # 1. Swapped target resource group smoothly to PROD
+          az aks get-credentials --resource-group rg-nexusbank-prod --name ${{ steps.bicep-deploy.outputs.aksClusterName }} --overwrite-existing
+          
+          # 2. Extract Token
+          export APPINS_CONN_STR="${{ steps.bicep-deploy.outputs.appInsightsConnectionString }}"
+          
+          # 3. Dynamic replacement
+          sed -i "s|CONNECTION_STRING_PLACEHOLDER|$APPINS_CONN_STR|g" ./k8s/ledger-api.yaml
+          
+          # 4. Ship production context blueprints
           kubectl apply -f ./k8s/ledger-api.yaml
           kubectl apply -f ./k8s/nexus-worker.yaml
