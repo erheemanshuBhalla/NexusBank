@@ -40,6 +40,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # ◄ ADD THIS AUTOMATED STEP HERE TO MAKE DEV SELF-HEALING
+      - name: Ensure Development Resource Group Exists
+        run: |
+          az group create --name rg-nexusbank-dev --location westus --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy Infrastructure (Azure Bicep)
         id: bicep-deploy
         uses: azure/arm-deploy@v2
