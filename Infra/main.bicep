@@ -169,3 +169,32 @@ output appInsightsConnectionString string = appInsights.properties.ConnectionStr
 
 // Output the dynamically generated AKS Cluster Name so the pipeline can read it
 output aksClusterName string = aksCluster.name // (Change 'aksCluster' to match your resource symbolic name if it differs)
+
+// ==========================================
+// API MANAGEMENT GATEWAY (WEEK 8)
+// ==========================================
+
+@description('The name of the API Management Service')
+var apimServiceName = 'apim-nexus-${environment}-${uniqueString(resourceGroup().id)}'
+
+@description('The email address associated with the APIM owner')
+param apimPublisherEmail string = 'admin@nexusbank.com'
+
+@description('The organization name for APIM')
+param apimPublisherName string = 'NexusBank Enterprise'
+
+resource apiManagementService 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
+  name: apimServiceName
+  location: location
+  sku: {
+    name: 'Consumption' // Lightweight, fast deployment, pay-as-you-go pricing tier
+    capacity: 0
+  }
+  properties: {
+    publisherEmail: apimPublisherEmail
+    publisherName: apimPublisherName
+  }
+}
+
+// Output the public gateway URL so we know where to send requests
+output apimGatewayUrl string = apiManagementService.properties.gatewayUrl
