@@ -80,7 +80,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
 }
 
 // Define names for the SQL Server and Database
-var sqlServerName = 'sql-nexusbank-${environment}-${uniqueString(resourceGroup().id)}-v6'
+var sqlServerName = 'sql-nexusbank-${environment}-${uniqueString(resourceGroup().id)}-v8'
 var sqlDatabaseName = 'NexusLedgerDb'
 
 // 1. Provision the Azure SQL Server
