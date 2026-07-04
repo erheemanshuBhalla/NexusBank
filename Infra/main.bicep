@@ -166,3 +166,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 
 // Output the Instrumentation Key and Connection String so our .NET applications can reference it later
 output appInsightsConnectionString string = appInsights.properties.ConnectionString
+
+// Output the dynamically generated AKS Cluster Name so the pipeline can read it
+output aksClusterName string = aksCluster.name // (Change 'aksCluster' to match your resource symbolic name if it differs)
