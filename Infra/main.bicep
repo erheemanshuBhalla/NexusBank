@@ -10,21 +10,20 @@ param environment string
 @description('The primary location for all deployed resources.')
 param location string = resourceGroup().location
 
-// ◄ ADD THIS PARAMETER HERE:
 @secure()
 @description('The administrator password for the SQL Server.')
-param sqlAdminPassword string // ◄ REMOVE THE = 'ComplexPassword123!' DEFAULT VALUE HERE
+param sqlAdminPassword string
 
-// Centralized naming conventions utilizing our environment parameter
+// Centralized naming conventions utilizing our environment parameter dynamically
 var identityName = 'id-nexus-ledger-${environment}-01'
-param keyVaultName string = 'kv-nexusbank-dev-xyz99' // Put your own custom letters/numbers here
+var keyVaultName = take('kv-nexus-${environment}-${uniqueString(resourceGroup().id)}', 24)
 
 // 1. Orchestrate the Identity Module
 module appIdentity 'modules/identity.bicep' = {
   name: 'deploy-identity-${environment}'
   params: {
     identityName: identityName
-    location: location // ◄ FIXED: Removed the single quotes here!
+    location: location
   }
 }
 
@@ -34,29 +33,24 @@ module appKeyVault 'modules/keyvault.bicep' = {
   params: {
     keyVaultName: keyVaultName
     location: location
-    appPrincipalId: appIdentity.outputs.identityPrincipalId // ◄ The link happens here!
+    appPrincipalId: appIdentity.outputs.identityPrincipalId
   }
 }
-
-output deployedKeyVaultUri string = appKeyVault.outputs.kvUri
 
 // Define a unique name for the Container Registry
 param acrName string = 'acrnexus${uniqueString(resourceGroup().id)}'
 
-// Create the Azure Container Registry (Basic tier is perfect for dev environments)
+// Create the Azure Container Registry
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Basic'
   }
   properties: {
-    adminUserEnabled: true // Allows your pipeline to easily authenticate
+    adminUserEnabled: true
   }
 }
-
-// Output the ACR Login Server url so your GitHub pipeline can see where to push images
-output acrLoginServer string = acr.properties.loginServer
 
 param aksClusterName string = 'aks-nexus-${environment}-01'
 
@@ -73,11 +67,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   }
   properties: {
     dnsPrefix: 'nexusbank-${environment}'
-   agentPoolProfiles: [
+    agentPoolProfiles: [
       {
         name: 'agentpool'
         count: 1
-        vmSize: 'Standard_D2s_v6' // ◄ CHANGED: Replaced B2s with an allowed, cost-effective dev size
+        vmSize: 'Standard_D2s_v6'
         osType: 'Linux'
         mode: 'System'
       }
@@ -85,18 +79,17 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   }
 }
 
-
-// Define names for the SQL Server and Database (Bumped to -v6)
+// Define names for the SQL Server and Database
 var sqlServerName = 'sql-nexusbank-${environment}-${uniqueString(resourceGroup().id)}-v6'
 var sqlDatabaseName = 'NexusLedgerDb'
 
-// 1. Provision the Azure SQL Server (Targeting westus with standard authentication)
+// 1. Provision the Azure SQL Server
 resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
   name: sqlServerName
-  location: 'westus'
+  location: location
   properties: {
     administratorLogin: 'sqladmin'
-    administratorLoginPassword: sqlAdminPassword // ◄ FIXED: Passing the secure param instead
+    administratorLoginPassword: sqlAdminPassword
     administrators: null
     minimalTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
@@ -107,7 +100,7 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
   parent: sqlServer
   name: sqlDatabaseName
-  location: 'westus'
+  location: location
   sku: {
     name: 'GP_S_Gen5_1'
     tier: 'GeneralPurpose'
@@ -130,5 +123,7 @@ resource firewallAllowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-05
   }
 }
 
-// Output the full server fully-qualified domain name (FQDN) for your connection string
+// --- GLOBAL OUTPUTS ALIGNED TO TOP-LEVEL SCOPE ---
+output deployedKeyVaultUri string = appKeyVault.outputs.kvUri
+output acrLoginServer string = acr.properties.loginServer
 output sqlServerFullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
