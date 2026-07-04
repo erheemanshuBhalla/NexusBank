@@ -139,7 +139,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:prod-latest
-            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }} # ◄ FIXED: changed 'secrets' to 'steps'
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-api:${{ github.sha }}
 
       - name: Build and Push Worker Image
         uses: docker/build-push-action@v5
@@ -149,8 +149,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:prod-latest
-            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }} # ◄ FIXED: changed 'secrets' to 'steps'
-
+            ${{ steps.bicep-deploy.outputs.acrLoginServer }}/nexusbank-worker:${{ github.sha }}
       - name: Deploy Manifests to AKS (PROD)
         run: |
           # 1. Swapped target resource group smoothly to PROD
