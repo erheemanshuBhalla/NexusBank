@@ -198,3 +198,40 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2023-05-01-previe
 
 // Output the public gateway URL so we know where to send requests
 output apimGatewayUrl string = apiManagementService.properties.gatewayUrl
+
+// ==========================================
+// APIM API ROUTING CONTRACTS
+// ==========================================
+
+// 1. Define the Nexus Ledger API Blueprint inside the Gateway
+resource bankApiRoute 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
+  parent: apiManagementService
+  name: 'nexus-ledger-api'
+  properties: {
+    displayName: 'NexusBank Ledger Service'
+    description: 'Managed API gateway routing for core banking ledger actions.'
+    
+    // This defines the public suffix URL path (e.g., https://your-apim.azure-api.net/ledger)
+    path: 'ledger'
+    protocols: [
+      'https'
+    ]
+    
+    // Right now, this maps directly to your active service load balancer address
+    // In an enterprise setup, this points to an internal private ingress controller IP
+    serviceUrl: 'http://ledger-api.default.svc.cluster.local'
+    subscriptionRequired: false // Disabled for initial testing convenience
+  }
+}
+
+// 2. Define a catch-all route operation so everything under /ledger/* is passed to AKS
+resource catchAllOperation 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+  parent: bankApiRoute
+  name: 'catch-all-requests'
+  properties: {
+    displayName: 'Route Gateway Traffic'
+    method: 'GET'
+    urlTemplate: '/*'
+    templateParameters: []
+  }
+}
