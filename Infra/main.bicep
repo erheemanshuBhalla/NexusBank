@@ -235,7 +235,6 @@ resource catchAllOperation 'Microsoft.ApiManagement/service/apis/operations@2023
     templateParameters: []
   }
 }
-
 // ==========================================
 // APIM POLICY MANAGEMENT (RATE LIMITING)
 // ==========================================
@@ -247,9 +246,7 @@ resource bankApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-01
     value: '''<policies>
       <inbound>
         <base />
-        <!-- WEEK 8: Protect our core banking ledger from runaway traffic and DDoS loops -->
-        <!-- Limit each unique client IP to 5 calls per 60 seconds -->
-        <rate-limit-by-key calls="5" renewal-period="60" counter-key="@(context.Request.IpAddress)" increment-condition="@(context.Response.StatusCode < 400)" />
+        <rate-limit calls="10" renewal-period="60" />
       </inbound>
       <backend>
         <base />
